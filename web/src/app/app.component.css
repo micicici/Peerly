@@ -1,0 +1,21 @@
+.app-toast {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 20;
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  background: #134e4a;
+  color: #fff;
+  border-radius: 6px;
+}
+
+.app-toast button {
+  background: transparent;
+  color: #fff;
+  border: 1px solid #fff;
+  padding: 0.25rem 0.5rem;
+}

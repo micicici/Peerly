@@ -1,0 +1,7 @@
+@if (toast.message(); as message) {
+  <p class="app-toast" role="status">
+    <span>{{ message }}</span>
+    <button type="button" (click)="toast.clear()">Dismiss</button>
+  </p>
+}
+<router-outlet />

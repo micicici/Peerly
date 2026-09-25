@@ -1,0 +1,45 @@
+.shell-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.8rem 1.25rem;
+  background: #fff;
+  border-bottom: 3px solid #0f766e;
+}
+
+.brand {
+  font-weight: 700;
+  color: #0f766e;
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+nav a {
+  color: #44403c;
+  text-decoration: none;
+}
+
+nav a.active {
+  color: #0f766e;
+  font-weight: 650;
+}
+
+.balance {
+  color: #0f766e;
+  font-weight: 650;
+}
+
+.ghost {
+  background: transparent;
+  color: #0f766e;
+  border: 1px solid #0f766e;
+}
+
+.page {
+  padding: 1.5rem;
+}
