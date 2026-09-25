@@ -28,8 +28,9 @@ export class BookingsEffects {
           catchError((err: unknown) => {
             const failure = failureOf(err);
             const message =
-              failure.errorCode === ErrorCodes.SLOT_GONE
-                ? messageForErrorCode(ErrorCodes.SLOT_GONE)
+              failure.errorCode === ErrorCodes.SLOT_GONE ||
+              failure.errorCode === ErrorCodes.INSUFFICIENT_HOURS
+                ? messageForErrorCode(failure.errorCode)
                 : failure.message;
             this.toast.show(message);
             if (failure.errorCode === ErrorCodes.SLOT_GONE) {

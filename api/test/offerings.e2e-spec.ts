@@ -4,6 +4,13 @@ import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { DataSource } from 'typeorm';
 
+function nextUtcHour(offsetHours = 2): Date {
+  const d = new Date();
+  d.setUTCMinutes(0, 0, 0);
+  d.setUTCHours(d.getUTCHours() + offsetHours);
+  return d;
+}
+
 describe('Offerings', () => {
   let app: INestApplication;
 
@@ -149,5 +156,107 @@ describe('Offerings', () => {
       .set('Authorization', `Bearer ${teacher}`);
     expect(me.body.offeringCount).toBe(1);
     expect(me.body.balance).toBe(3);
+  });
+
+  it('deletes leftover open slots with the offering so they cannot be booked', async () => {
+    const teacher = await register('cascade-teacher@example.com');
+    const learner = await register('cascade-learner@example.com');
+    await request(app.getHttpServer())
+      .post('/offerings')
+      .set('Authorization', `Bearer ${learner}`)
+      .send({ title: 'Learner', description: 'Hours', level: 'beginner' })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/offerings')
+      .set('Authorization', `Bearer ${teacher}`)
+      .send({ title: 'Keep', description: 'Stay', level: 'beginner' })
+      .expect(201);
+    const drop = await request(app.getHttpServer())
+      .post('/offerings')
+      .set('Authorization', `Bearer ${teacher}`)
+      .send({ title: 'Drop', description: 'Gone', level: 'intermediate' })
+      .expect(201);
+    const slot = await request(app.getHttpServer())
+      .post('/slots')
+      .set('Authorization', `Bearer ${teacher}`)
+      .send({
+        offeringId: drop.body.id,
+        startAt: nextUtcHour(3).toISOString(),
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete(`/offerings/${drop.body.id}`)
+      .set('Authorization', `Bearer ${teacher}`)
+      .expect(200);
+
+    const listed = await request(app.getHttpServer())
+      .get('/slots')
+      .query({ offeringId: drop.body.id })
+      .set('Authorization', `Bearer ${learner}`)
+      .expect(200);
+    expect(listed.body).toEqual([]);
+
+    const gone = await request(app.getHttpServer())
+      .post('/bookings')
+      .set('Authorization', `Bearer ${learner}`)
+      .send({ slotId: slot.body.id })
+      .expect(409);
+    expect(gone.body.code).toBe('SLOT_GONE');
+  });
+
+  it('blocks delete when a future booking is confirmed and keeps the cancelled slot', async () => {
+    const teacher = await register('future-teacher@example.com');
+    const learner = await register('future-learner@example.com');
+    await request(app.getHttpServer())
+      .post('/offerings')
+      .set('Authorization', `Bearer ${learner}`)
+      .send({ title: 'Learner', description: 'Hours', level: 'beginner' })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/offerings')
+      .set('Authorization', `Bearer ${teacher}`)
+      .send({ title: 'Keep', description: 'Stay', level: 'beginner' })
+      .expect(201);
+    const drop = await request(app.getHttpServer())
+      .post('/offerings')
+      .set('Authorization', `Bearer ${teacher}`)
+      .send({ title: 'Booked', description: 'Hour', level: 'advanced' })
+      .expect(201);
+    const slot = await request(app.getHttpServer())
+      .post('/slots')
+      .set('Authorization', `Bearer ${teacher}`)
+      .send({
+        offeringId: drop.body.id,
+        startAt: nextUtcHour(4).toISOString(),
+      })
+      .expect(201);
+    const booked = await request(app.getHttpServer())
+      .post('/bookings')
+      .set('Authorization', `Bearer ${learner}`)
+      .send({ slotId: slot.body.id })
+      .expect(201);
+
+    const blocked = await request(app.getHttpServer())
+      .delete(`/offerings/${drop.body.id}`)
+      .set('Authorization', `Bearer ${teacher}`)
+      .expect(403);
+    expect(blocked.body.code).toBe('FORBIDDEN');
+    expect(blocked.body.message).toBe('Offering has upcoming bookings');
+
+    await request(app.getHttpServer())
+      .post(`/bookings/${booked.body.id}/cancel`)
+      .set('Authorization', `Bearer ${teacher}`)
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .delete(`/offerings/${drop.body.id}`)
+      .set('Authorization', `Bearer ${teacher}`)
+      .expect(200);
+
+    const rows: { status: string }[] = await app
+      .get(DataSource)
+      .query(`SELECT status FROM slots WHERE id = $1`, [slot.body.id]);
+    expect(rows).toEqual([{ status: 'cancelled' }]);
   });
 });

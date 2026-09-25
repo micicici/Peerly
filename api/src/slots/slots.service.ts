@@ -12,8 +12,6 @@ export class SlotsService {
   constructor(
     @InjectRepository(Slot)
     private readonly slots: Repository<Slot>,
-    @InjectRepository(Offering)
-    private readonly offerings: Repository<Offering>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -29,15 +27,15 @@ export class SlotsService {
       throw new AppError('SLOT_IN_PAST', 'Start is in the past', 400);
     }
 
-    const offering = await this.offerings.findOne({
-      where: { id: offeringId },
-    });
-    if (!offering || offering.teacherId !== teacherId) {
-      throw new AppError('FORBIDDEN', 'Offering not found', 403);
-    }
-
     const endAt = new Date(startAt.getTime() + HOUR_MS);
     return this.dataSource.transaction(async (manager) => {
+      const offering = await manager.findOne(Offering, {
+        where: { id: offeringId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!offering || offering.teacherId !== teacherId) {
+        throw new AppError('FORBIDDEN', 'Offering not found', 403);
+      }
       const repo = manager.getRepository(Slot);
       const clash = await repo
         .createQueryBuilder('s')
@@ -68,15 +66,20 @@ export class SlotsService {
   }
 
   async removeOpen(teacherId: string, slotId: string): Promise<void> {
-    const slot = await this.slots.findOne({ where: { id: slotId } });
-    if (!slot || slot.teacherId !== teacherId || slot.status !== 'open') {
-      throw new AppError(
-        'FORBIDDEN',
-        'Only an open slot you own can be deleted',
-        403,
-      );
-    }
-    await this.slots.delete(slotId);
+    await this.dataSource.transaction(async (manager) => {
+      const slot = await manager.findOne(Slot, {
+        where: { id: slotId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!slot || slot.teacherId !== teacherId || slot.status !== 'open') {
+        throw new AppError(
+          'FORBIDDEN',
+          'Only an open slot you own can be deleted',
+          403,
+        );
+      }
+      await manager.delete(Slot, slotId);
+    });
   }
 
   listOpenForOffering(offeringId: string): Promise<Slot[]> {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { Booking } from '../bookings/booking.entity';
 import { AppError } from '../common/app-error';
 import { LedgerService } from '../ledger/ledger.service';
@@ -120,19 +120,32 @@ export class OfferingsService {
   }
 
   async remove(teacherId: string, id: string): Promise<void> {
-    await this.findOwned(teacherId, id);
-    const count = await this.countFor(teacherId);
-    if (count < 2) {
-      throw new AppError(
-        'FORBIDDEN',
-        'You must keep at least one offering',
-        403,
-      );
-    }
-    if (await this.hasFutureConfirmedBooking(id)) {
-      throw new AppError('FORBIDDEN', 'Offering has upcoming bookings', 403);
-    }
-    await this.offerings.delete(id);
+    await this.dataSource.transaction(async (manager) => {
+      const offering = await manager.findOne(Offering, {
+        where: { id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!offering || offering.teacherId !== teacherId) {
+        throw new AppError('FORBIDDEN', 'Offering not found', 403);
+      }
+      const count = await manager.count(Offering, { where: { teacherId } });
+      if (count < 2) {
+        throw new AppError(
+          'FORBIDDEN',
+          'You must keep at least one offering',
+          403,
+        );
+      }
+      await manager.find(Slot, {
+        where: { offeringId: id },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (await this.hasFutureConfirmedBooking(manager, id)) {
+        throw new AppError('FORBIDDEN', 'Offering has upcoming bookings', 403);
+      }
+      await manager.delete(Slot, { offeringId: id, status: 'open' });
+      await manager.delete(Offering, id);
+    });
   }
 
   countFor(teacherId: string): Promise<number> {
@@ -203,21 +216,10 @@ export class OfferingsService {
   }
 
   private async hasFutureConfirmedBooking(
+    manager: EntityManager,
     offeringId: string,
   ): Promise<boolean> {
-    const [reg] = await this.dataSource.query(
-      `SELECT to_regclass('public.bookings') AS reg`,
-    );
-    if (!reg?.reg) {
-      return false;
-    }
-    const [slotTable] = await this.dataSource.query(
-      `SELECT to_regclass('public.slots') AS reg`,
-    );
-    if (!slotTable?.reg) {
-      return false;
-    }
-    const rows: unknown[] = await this.dataSource.query(
+    const rows: unknown[] = await manager.query(
       `SELECT 1
        FROM bookings b
        INNER JOIN slots s ON s.id = b."slotId"

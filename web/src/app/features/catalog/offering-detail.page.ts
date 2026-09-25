@@ -28,11 +28,23 @@ import {
           {{ item.confirmedBookingCount }} confirmed bookings
         </p>
         <h2>Open hours</h2>
+        @if (item.teacherId !== me()?.id && (me()?.balance ?? 0) < 1) {
+          <p class="meta">
+            Not enough hours.
+            <a routerLink="/teach">Teach</a> to earn more.
+          </p>
+        }
         @for (slot of slots(); track slot.id) {
           <div class="slot-row">
             <span>{{ formatTime(slot.startAt) }}</span>
             @if (item.teacherId !== me()?.id) {
-              <button type="button" (click)="book(slot)">Book</button>
+              <button
+                type="button"
+                [disabled]="(me()?.balance ?? 0) < 1"
+                (click)="book(slot)"
+              >
+                Book
+              </button>
             }
           </div>
         } @empty {
@@ -78,7 +90,7 @@ export class OfferingDetailPage {
 
   book(slot: Slot): void {
     const offering = this.offering();
-    if (!offering) {
+    if (!offering || (this.me()?.balance ?? 0) < 1) {
       return;
     }
     this.store.dispatch(

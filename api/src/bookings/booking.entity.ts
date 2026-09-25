@@ -2,8 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Slot } from '../slots/slot.entity';
 
 export type BookingStatus = 'confirmed' | 'cancelled';
 
@@ -14,6 +17,10 @@ export class Booking {
 
   @Column({ type: 'uuid', unique: true })
   slotId: string;
+
+  @ManyToOne(() => Slot, { nullable: false, onDelete: 'RESTRICT' })
+  @JoinColumn({ name: 'slotId' })
+  slot: Slot;
 
   @Column({ type: 'uuid' })
   learnerId: string;

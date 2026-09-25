@@ -259,4 +259,82 @@ describe('Slots', () => {
       .expect(403);
     expect(blocked.body.code).toBe('FORBIDDEN');
   });
+
+  it('rejects a slot id that is not a real slot', async () => {
+    const fks: { referenced: string }[] = await app.get(DataSource).query(
+      `SELECT r.relname AS referenced
+       FROM pg_constraint c
+       JOIN pg_class t ON t.oid = c.conrelid
+       JOIN pg_class r ON r.oid = c.confrelid
+       WHERE t.relname = 'bookings' AND c.contype = 'f'`,
+    );
+    expect(fks).toEqual([expect.objectContaining({ referenced: 'slots' })]);
+
+    await expect(
+      app.get(DataSource).query(
+        `INSERT INTO bookings (id, "slotId", "learnerId", "teacherId", "offeringId", "joinUrl", status)
+         VALUES (gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), 'https://meet.jit.si/x', 'confirmed')`,
+      ),
+    ).rejects.toThrow(/foreign key/i);
+  });
+
+  it('does not delete a slot that was booked while the delete waited', async () => {
+    const owner = await userWithOffering();
+    const start = nextUtcHour();
+    const created = await request(app.getHttpServer())
+      .post('/slots')
+      .set('Authorization', `Bearer ${owner.token}`)
+      .send({ offeringId: owner.offeringId, startAt: start.toISOString() })
+      .expect(201);
+
+    const held = app.get(DataSource).createQueryRunner();
+    await held.connect();
+    await held.startTransaction();
+    try {
+      await held.query('SELECT id FROM slots WHERE id = $1 FOR UPDATE', [
+        created.body.id,
+      ]);
+
+      const pending = request(app.getHttpServer())
+        .delete(`/slots/${created.body.id}`)
+        .set('Authorization', `Bearer ${owner.token}`)
+        .then((res) => res);
+
+      const started = Date.now();
+      let waiting = 0;
+      while (Date.now() - started < 8000) {
+        const rows: { n: number }[] = await app.get(DataSource).query(
+          `SELECT COUNT(*)::int AS n
+           FROM pg_stat_activity
+           WHERE wait_event_type = 'Lock' AND pid <> pg_backend_pid()`,
+        );
+        waiting = rows[0]?.n ?? 0;
+        if (waiting > 0) {
+          break;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 40));
+      }
+      expect(waiting).toBeGreaterThan(0);
+
+      await held.query(`UPDATE slots SET status = 'booked' WHERE id = $1`, [
+        created.body.id,
+      ]);
+      await held.commitTransaction();
+
+      const blocked = await pending;
+      expect(blocked.status).toBe(403);
+      expect(blocked.body.code).toBe('FORBIDDEN');
+    } finally {
+      if (held.isTransactionActive) {
+        await held.rollbackTransaction();
+      }
+      await held.release();
+    }
+
+    const rows: { status: string }[] = await app.get(DataSource).query(
+      `SELECT status FROM slots WHERE id = $1`,
+      [created.body.id],
+    );
+    expect(rows).toEqual([{ status: 'booked' }]);
+  }, 20000);
 });
