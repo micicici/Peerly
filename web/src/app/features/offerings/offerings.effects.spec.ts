@@ -30,4 +30,37 @@ describe('OfferingsEffects', () => {
     expect(outcomes).toContain(OfferingsActions.createFailure.type);
     expect(outcomes).not.toContain(OfferingsActions.createSuccess.type);
   });
+
+  it('removeFailure surfaces API message on 403 JSON body', () => {
+    const actions$ = new ReplaySubject(1);
+    TestBed.configureTestingModule({
+      imports: [HttpClientTestingModule],
+      providers: [
+        OfferingsEffects,
+        provideMockActions(() => actions$),
+        provideMockStore({}),
+      ],
+    });
+    const effects = TestBed.inject(OfferingsEffects);
+    const http = TestBed.inject(HttpTestingController);
+    const failures: ReturnType<typeof OfferingsActions.removeFailure>[] = [];
+    effects.remove$.subscribe((a) => {
+      if (a.type === OfferingsActions.removeFailure.type) {
+        failures.push(a);
+      }
+    });
+    actions$.next(OfferingsActions.remove({ id: 'off-1' }));
+    http
+      .expectOne('http://localhost:3000/offerings/off-1')
+      .flush(
+        {
+          code: 'FORBIDDEN',
+          message: 'You must keep at least one offering.',
+        },
+        { status: 403, statusText: 'Forbidden' },
+      );
+    expect(failures.length).toBe(1);
+    expect(failures[0].errorCode).toBe('FORBIDDEN');
+    expect(failures[0].message).toBe('You must keep at least one offering.');
+  });
 });

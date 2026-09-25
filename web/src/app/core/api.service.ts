@@ -20,8 +20,6 @@ export class ApiService {
   }
 
   delete(path: string) {
-    return this.http.delete(`${this.baseUrl}${path}`, {
-      responseType: 'text',
-    });
+    return this.http.delete(`${this.baseUrl}${path}`);
   }
 }
