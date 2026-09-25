@@ -7,6 +7,7 @@ import { HttpErrorFilter } from './common/http-exception.filter';
 import { JwtAuthGuard } from './common/jwt-auth.guard';
 import { OfferingRequiredGuard } from './common/offering-required.guard';
 import { OfferingsModule } from './offerings/offerings.module';
+import { SlotsModule } from './slots/slots.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -14,6 +15,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     OfferingsModule,
+    SlotsModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST ?? 'localhost',

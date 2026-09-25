@@ -1,13 +1,14 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { LedgerModule } from '../ledger/ledger.module';
+import { Slot } from '../slots/slot.entity';
 import { User } from '../users/user.entity';
 import { Offering } from './offering.entity';
 import { OfferingsController } from './offerings.controller';
 import { OfferingsService } from './offerings.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Offering, User]), LedgerModule],
+  imports: [TypeOrmModule.forFeature([Offering, User, Slot]), LedgerModule],
   controllers: [OfferingsController],
   providers: [OfferingsService],
   exports: [OfferingsService],

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
 import { AppError } from '../common/app-error';
 import { LedgerService } from '../ledger/ledger.service';
+import { Slot } from '../slots/slot.entity';
 import { User } from '../users/user.entity';
 import { Offering, OfferingLevel } from './offering.entity';
 
@@ -31,6 +32,8 @@ export class OfferingsService {
     private readonly offerings: Repository<Offering>,
     @InjectRepository(User)
     private readonly users: Repository<User>,
+    @InjectRepository(Slot)
+    private readonly slots: Repository<Slot>,
     private readonly ledger: LedgerService,
     private readonly dataSource: DataSource,
   ) {}
@@ -151,6 +154,7 @@ export class OfferingsService {
     const names = new Map(
       teachers.map((teacher) => [teacher.id, teacher.name]),
     );
+    const openSlotCount = await this.openSlotCounts(rows.map((row) => row.id));
     return rows.map((row) => ({
       id: row.id,
       teacherId: row.teacherId,
@@ -159,9 +163,24 @@ export class OfferingsService {
       description: row.description,
       level: row.level,
       createdAt: row.createdAt,
-      openSlotCount: 0,
+      openSlotCount: openSlotCount.get(row.id) ?? 0,
       confirmedBookingCount: 0,
     }));
+  }
+
+  private async openSlotCounts(
+    offeringIds: string[],
+  ): Promise<Map<string, number>> {
+    const rows = await this.slots
+      .createQueryBuilder('s')
+      .select('s.offeringId', 'offeringId')
+      .addSelect('COUNT(*)', 'count')
+      .where('s.offeringId IN (:...offeringIds)', { offeringIds })
+      .andWhere("s.status = 'open'")
+      .andWhere('s.startAt > :now', { now: new Date() })
+      .groupBy('s.offeringId')
+      .getRawMany<{ offeringId: string; count: string }>();
+    return new Map(rows.map((row) => [row.offeringId, Number(row.count)]));
   }
 
   private async hasFutureConfirmedBooking(
