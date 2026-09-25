@@ -1,11 +1,15 @@
 import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 import { HealthController } from './health.controller';
 import { HttpErrorFilter } from './common/http-exception.filter';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    AuthModule,
+    UsersModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST ?? 'localhost',
