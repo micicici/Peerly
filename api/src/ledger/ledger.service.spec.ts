@@ -60,6 +60,48 @@ describe('LedgerService', () => {
     expect(await service.balanceFor(userId)).toBe(3);
   });
 
+  it('balanceFor with a manager locks the user ledger rows until the transaction ends', async () => {
+    const userId = await user();
+    await service.insert({ userId, amount: 3, type: 'starter' });
+
+    let release!: () => void;
+    const hold = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let entered!: () => void;
+    const holding = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+
+    const first = dataSource.transaction(async (manager) => {
+      await service.balanceFor(userId, manager);
+      entered();
+      await hold;
+    });
+
+    await holding;
+
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    let blocked = false;
+    try {
+      await queryRunner.query(`SET LOCAL lock_timeout = '400ms'`);
+      try {
+        await service.balanceFor(userId, queryRunner.manager);
+      } catch (err) {
+        blocked = /lock timeout/i.test(String(err));
+        if (!blocked) throw err;
+      }
+    } finally {
+      await queryRunner.rollbackTransaction();
+      await queryRunner.release();
+      release();
+      await first;
+    }
+    expect(blocked).toBe(true);
+  });
+
   it('spend changes SUM', async () => {
     const userId = await user();
     const bookingId = '11111111-1111-4111-8111-111111111111';

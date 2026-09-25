@@ -215,6 +215,33 @@ describe('Bookings', () => {
     expect(fourth.body.code).toBe('INSUFFICIENT_HOURS');
   });
 
+  it('concurrent books of different slots cannot overdraw the learner', async () => {
+    const teacher = await userWithOffering('overdraw-t@example.com');
+    const learner = await userWithOffering('overdraw-l@example.com');
+    const starts = [1, 2, 3, 4].map((h) => {
+      const d = nextUtcHour();
+      d.setUTCHours(d.getUTCHours() + h);
+      return d;
+    });
+    const slots = [];
+    for (const start of starts) {
+      slots.push(await createSlot(teacher.token, teacher.offeringId, start));
+    }
+    const results = await Promise.all(
+      slots.map((slot) =>
+        request(app.getHttpServer())
+          .post('/bookings')
+          .set('Authorization', `Bearer ${learner.token}`)
+          .send({ slotId: slot.id }),
+      ),
+    );
+    expect(results.map((r) => r.status).sort()).toEqual([201, 201, 201, 400]);
+    expect(results.find((r) => r.status === 400)?.body.code).toBe(
+      'INSUFFICIENT_HOURS',
+    );
+    expect((await getMe(learner.token)).body.balance).toBe(0);
+  });
+
   it('only one of two concurrent books succeeds', async () => {
     const teacher = await userWithOffering('ct@example.com');
     const a = await userWithOffering('ca@example.com');

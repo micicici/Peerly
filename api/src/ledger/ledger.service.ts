@@ -19,6 +19,14 @@ export class LedgerService {
 
   async balanceFor(userId: string, manager?: EntityManager): Promise<number> {
     const repo = this.repository(manager);
+    if (manager) {
+      await repo
+        .createQueryBuilder('e')
+        .setLock('pessimistic_write')
+        .where('e.userId = :userId', { userId })
+        .orderBy('e.id', 'ASC')
+        .getMany();
+    }
     const raw = await repo
       .createQueryBuilder('e')
       .select('COALESCE(SUM(e.amount), 0)', 'sum')
