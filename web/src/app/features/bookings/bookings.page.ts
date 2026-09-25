@@ -19,11 +19,8 @@ import { isJoinWindowOpen } from './join-window';
           <h2>{{ role(booking) }}</h2>
           <p>{{ formatTime(booking.startAt) }}</p>
           <p class="meta">{{ booking.status }}</p>
-          @if (booking.status === 'confirmed' && booking.joinUrl) {
-            <p class="meta">Join URL: {{ booking.joinUrl }}</p>
-            @if (joinOpen(booking)) {
-              <a [href]="booking.joinUrl" target="_blank">Join</a>
-            }
+          @if (joinOpen(booking) && booking.joinUrl) {
+            <a [href]="booking.joinUrl" target="_blank" rel="noopener">Join</a>
           }
           @if (canCancel(booking)) {
             <button type="button" class="danger" (click)="cancel(booking.id)">

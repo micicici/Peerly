@@ -3,7 +3,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
-import { formatInTimezone, localDateHourToUtcIso } from '../../core/zoned-time';
+import {
+  formatInTimezone,
+  isUtcOnTheHour,
+  localDateHourToUtcIso,
+} from '../../core/zoned-time';
+import { ToastService } from '../../core/toast.service';
 import { selectMe } from '../auth/auth.selectors';
 import { SlotsActions } from '../slots/slots.actions';
 import { selectAllSlots, selectSlotsStatus } from '../slots/slots.selectors';
@@ -145,6 +150,7 @@ export class TeachOfferingsPage {
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
   private readonly actions$ = inject(Actions);
+  private readonly toast = inject(ToastService);
   readonly me = this.store.selectSignal(selectMe);
   readonly mine = this.store.selectSignal(selectMyOfferings);
   readonly status = this.store.selectSignal(selectOfferingsStatus);
@@ -278,6 +284,10 @@ export class TeachOfferingsPage {
       Number(hour),
       this.me()?.timezone || 'UTC',
     );
+    if (!isUtcOnTheHour(startAt)) {
+      this.toast.show('Start must be on the UTC hour');
+      return;
+    }
     this.store.dispatch(SlotsActions.create({ offeringId, startAt }));
   }
 

@@ -59,7 +59,15 @@ export function localDateHourToUtcIso(
       Date.UTC(year, month - 1, day, hour, 0, 0, 0) -
       zoneOffsetMs(new Date(utcMs), zone);
   }
-  const snapped = new Date(utcMs);
-  snapped.setUTCMinutes(0, 0, 0);
-  return snapped.toISOString();
+  return new Date(utcMs).toISOString();
+}
+
+export function isUtcOnTheHour(iso: string): boolean {
+  const date = new Date(iso);
+  return (
+    !Number.isNaN(date.getTime()) &&
+    date.getUTCMinutes() === 0 &&
+    date.getUTCSeconds() === 0 &&
+    date.getUTCMilliseconds() === 0
+  );
 }
