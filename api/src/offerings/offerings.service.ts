@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, Repository } from 'typeorm';
+import { Booking } from '../bookings/booking.entity';
 import { AppError } from '../common/app-error';
 import { LedgerService } from '../ledger/ledger.service';
 import { Slot } from '../slots/slot.entity';
@@ -34,6 +35,8 @@ export class OfferingsService {
     private readonly users: Repository<User>,
     @InjectRepository(Slot)
     private readonly slots: Repository<Slot>,
+    @InjectRepository(Booking)
+    private readonly bookings: Repository<Booking>,
     private readonly ledger: LedgerService,
     private readonly dataSource: DataSource,
   ) {}
@@ -154,7 +157,9 @@ export class OfferingsService {
     const names = new Map(
       teachers.map((teacher) => [teacher.id, teacher.name]),
     );
-    const openSlotCount = await this.openSlotCounts(rows.map((row) => row.id));
+    const ids = rows.map((row) => row.id);
+    const openSlotCount = await this.openSlotCounts(ids);
+    const confirmedBookingCount = await this.confirmedBookingCounts(ids);
     return rows.map((row) => ({
       id: row.id,
       teacherId: row.teacherId,
@@ -164,8 +169,22 @@ export class OfferingsService {
       level: row.level,
       createdAt: row.createdAt,
       openSlotCount: openSlotCount.get(row.id) ?? 0,
-      confirmedBookingCount: 0,
+      confirmedBookingCount: confirmedBookingCount.get(row.id) ?? 0,
     }));
+  }
+
+  private async confirmedBookingCounts(
+    offeringIds: string[],
+  ): Promise<Map<string, number>> {
+    const rows = await this.bookings
+      .createQueryBuilder('b')
+      .select('b.offeringId', 'offeringId')
+      .addSelect('COUNT(*)', 'count')
+      .where('b.offeringId IN (:...offeringIds)', { offeringIds })
+      .andWhere("b.status = 'confirmed'")
+      .groupBy('b.offeringId')
+      .getRawMany<{ offeringId: string; count: string }>();
+    return new Map(rows.map((row) => [row.offeringId, Number(row.count)]));
   }
 
   private async openSlotCounts(

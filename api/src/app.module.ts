@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { BookingsModule } from './bookings/bookings.module';
 import { HealthController } from './health.controller';
 import { HttpErrorFilter } from './common/http-exception.filter';
 import { JwtAuthGuard } from './common/jwt-auth.guard';
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     OfferingsModule,
     SlotsModule,
+    BookingsModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DATABASE_HOST ?? 'localhost',
