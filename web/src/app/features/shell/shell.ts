@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { logout } from '../auth/auth.actions';
-import { selectMe } from '../auth/auth.selectors';
+import { selectBalance } from '../ledger/ledger.selectors';
 
 @Component({
   selector: 'app-shell',
@@ -12,7 +12,7 @@ import { selectMe } from '../auth/auth.selectors';
 })
 export class Shell {
   private readonly store = inject(Store);
-  readonly me = this.store.selectSignal(selectMe);
+  readonly balance = this.store.selectSignal(selectBalance);
 
   logout(): void {
     this.store.dispatch(logout());

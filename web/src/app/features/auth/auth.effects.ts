@@ -6,6 +6,7 @@ import { catchError, exhaustMap, map, of, tap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { P2P_TOKEN_KEY } from '../../core/auth.interceptor';
 import { ErrorCodes, messageForErrorCode } from '../../core/error-codes';
+import { failureOf } from '../../core/http-error';
 import { ToastService } from '../../core/toast.service';
 import {
   loadMe,
@@ -16,6 +17,8 @@ import {
   logout,
   register,
   registerSuccess,
+  updateMe,
+  updateMeFailure,
 } from './auth.actions';
 import type { MeDto } from './auth.reducer';
 
@@ -102,6 +105,29 @@ export class AuthEffects {
         ),
       ),
     ),
+  );
+
+  updateMe$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(updateMe),
+      exhaustMap(({ name, bio, avatarUrl, timezone }) =>
+        this.api
+          .patch<MeDto>('/me', { name, bio, avatarUrl, timezone })
+          .pipe(
+            map((me) => loadMeSuccess({ me })),
+            catchError((err: unknown) => of(updateMeFailure(failureOf(err)))),
+          ),
+      ),
+    ),
+  );
+
+  updateMeFailure$ = createEffect(
+    () =>
+      this.actions$.pipe(
+        ofType(updateMeFailure),
+        tap(({ message }) => this.toast.show(message)),
+      ),
+    { dispatch: false },
   );
 
   loginFailure$ = createEffect(

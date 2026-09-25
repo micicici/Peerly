@@ -17,6 +17,14 @@ const messages: Record<string, string> = {
   [ErrorCodes.UNAUTHENTICATED]: 'Email or password is incorrect.',
   [ErrorCodes.EMAIL_TAKEN]: 'That email is already registered.',
   [ErrorCodes.OFFERING_REQUIRED]: 'Publish an offering before continuing.',
+  [ErrorCodes.SLOT_GONE]: 'That hour was just taken.',
+  [ErrorCodes.SLOT_IN_PAST]: 'That hour is in the past.',
+  [ErrorCodes.SLOT_OVERLAP]: 'That hour overlaps another slot.',
+  [ErrorCodes.SLOT_INVALID]: 'Start must be on the UTC hour.',
+  [ErrorCodes.INSUFFICIENT_HOURS]: 'Not enough hours.',
+  [ErrorCodes.SELF_BOOK]: 'You cannot book your own hour.',
+  [ErrorCodes.CANCEL_NOT_ALLOWED]: 'This booking can no longer be cancelled.',
+  [ErrorCodes.FORBIDDEN]: 'You cannot do that.',
   [ErrorCodes.INTERNAL]: 'Try again.',
 };
 

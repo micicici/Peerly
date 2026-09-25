@@ -1,23 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { AppError } from '../common/app-error';
 import { LedgerService } from '../ledger/ledger.service';
 import { MeetingsService } from '../meetings/meetings.service';
 import { Slot } from '../slots/slot.entity';
-import { Booking } from './booking.entity';
+import { Booking, BookingStatus } from './booking.entity';
+
+export type BookingView = {
+  id: string;
+  slotId: string;
+  learnerId: string;
+  teacherId: string;
+  offeringId: string;
+  joinUrl: string;
+  status: BookingStatus;
+  createdAt: Date;
+  startAt: Date | null;
+};
 
 @Injectable()
 export class BookingsService {
   constructor(
     @InjectRepository(Booking)
     private readonly bookings: Repository<Booking>,
+    @InjectRepository(Slot)
+    private readonly slots: Repository<Slot>,
     private readonly ledger: LedgerService,
     private readonly meetings: MeetingsService,
     private readonly dataSource: DataSource,
   ) {}
 
-  create(learnerId: string, slotId: string): Promise<Booking> {
+  create(learnerId: string, slotId: string): Promise<BookingView> {
     return this.dataSource.transaction(async (manager) => {
       const slot = await manager.findOne(Slot, {
         where: { id: slotId },
@@ -71,11 +85,11 @@ export class BookingsService {
       );
       slot.status = 'booked';
       await manager.save(slot);
-      return booking;
+      return this.toView(booking, slot.startAt);
     });
   }
 
-  cancelAsTeacher(teacherId: string, bookingId: string): Promise<Booking> {
+  cancelAsTeacher(teacherId: string, bookingId: string): Promise<BookingView> {
     return this.dataSource.transaction(async (manager) => {
       const booking = await manager.findOne(Booking, {
         where: { id: bookingId },
@@ -121,14 +135,38 @@ export class BookingsService {
         },
         manager,
       );
-      return booking;
+      return this.toView(booking, slot.startAt);
     });
   }
 
-  listMine(userId: string): Promise<Booking[]> {
-    return this.bookings.find({
+  async listMine(userId: string): Promise<BookingView[]> {
+    const bookings = await this.bookings.find({
       where: [{ learnerId: userId }, { teacherId: userId }],
       order: { createdAt: 'DESC' },
     });
+    if (bookings.length === 0) {
+      return [];
+    }
+    const slots = await this.slots.find({
+      where: { id: In(bookings.map((booking) => booking.slotId)) },
+    });
+    const starts = new Map(slots.map((slot) => [slot.id, slot.startAt]));
+    return bookings.map((booking) =>
+      this.toView(booking, starts.get(booking.slotId) ?? null),
+    );
+  }
+
+  private toView(booking: Booking, startAt: Date | null): BookingView {
+    return {
+      id: booking.id,
+      slotId: booking.slotId,
+      learnerId: booking.learnerId,
+      teacherId: booking.teacherId,
+      offeringId: booking.offeringId,
+      joinUrl: booking.joinUrl,
+      status: booking.status,
+      createdAt: booking.createdAt,
+      startAt,
+    };
   }
 }

@@ -1,0 +1,18 @@
+.join {
+  display: inline-block;
+  margin-top: 0.5rem;
+  background: #0f766e;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+}
+
+.card a {
+  color: #fff;
+  background: #0f766e;
+  text-decoration: none;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  width: fit-content;
+}

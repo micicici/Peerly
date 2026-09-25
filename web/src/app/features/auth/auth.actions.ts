@@ -33,6 +33,21 @@ export const registerSuccess = createAction(
 
 export const loadMe = createAction('[Auth] Load Me');
 
+export const updateMe = createAction(
+  '[Auth] Update Me',
+  props<{
+    name: string;
+    bio: string;
+    avatarUrl: string;
+    timezone: string;
+  }>(),
+);
+
+export const updateMeFailure = createAction(
+  '[Auth] Update Me Failure',
+  props<{ errorCode: string; message: string }>(),
+);
+
 export const loadMeSuccess = createAction(
   '[Auth] Load Me Success',
   props<{ me: MeDto }>(),

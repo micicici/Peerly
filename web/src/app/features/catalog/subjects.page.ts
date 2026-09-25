@@ -45,7 +45,7 @@ import {
             <p>{{ offering.description }}</p>
             <p class="meta">{{ offering.openSlotCount }} open slots</p>
             @if (offering.teacherId !== me()?.id) {
-              <button type="button">Book</button>
+              <a class="button-link" [routerLink]="['/subjects', offering.id]">Book</a>
             }
           </article>
         }
