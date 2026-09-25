@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Patch, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../common/current-user.decorator';
 import { JwtAuthGuard } from '../common/jwt-auth.guard';
+import { LedgerService } from '../ledger/ledger.service';
 import { UpdateMeDto } from './dto/update-me.dto';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
@@ -8,7 +9,10 @@ import { UsersService } from './users.service';
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private readonly users: UsersService) {}
+  constructor(
+    private readonly users: UsersService,
+    private readonly ledger: LedgerService,
+  ) {}
 
   @Get('me')
   me(@CurrentUser() user: User) {
@@ -21,7 +25,7 @@ export class UsersController {
     return this.toProfile(updated);
   }
 
-  private toProfile(user: User) {
+  private async toProfile(user: User) {
     return {
       id: user.id,
       email: user.email,
@@ -29,7 +33,7 @@ export class UsersController {
       bio: user.bio,
       avatarUrl: user.avatarUrl,
       timezone: user.timezone,
-      balance: 0,
+      balance: await this.ledger.balanceFor(user.id),
       offeringCount: 0,
     };
   }
