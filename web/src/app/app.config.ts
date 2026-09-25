@@ -11,9 +11,11 @@ import { provideStore, Store } from '@ngrx/store';
 import { filter, firstValueFrom, take } from 'rxjs';
 import { routes } from './app.routes';
 import { authInterceptor, P2P_TOKEN_KEY } from './core/auth.interceptor';
+import { CatalogEffects } from './features/catalog/catalog.effects';
 import { loadMe } from './features/auth/auth.actions';
 import { AuthEffects } from './features/auth/auth.effects';
 import { selectAuthState } from './features/auth/auth.selectors';
+import { OfferingsEffects } from './features/offerings/offerings.effects';
 import { reducers } from './store';
 
 export const appConfig: ApplicationConfig = {
@@ -22,7 +24,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     provideStore(reducers),
-    provideEffects(AuthEffects),
+    provideEffects(AuthEffects, OfferingsEffects, CatalogEffects),
     provideAppInitializer(() => {
       const store = inject(Store);
       if (!localStorage.getItem(P2P_TOKEN_KEY)) {

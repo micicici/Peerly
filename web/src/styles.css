@@ -33,7 +33,9 @@ button:disabled {
   cursor: default;
 }
 
-input {
+input,
+textarea,
+select {
   width: 100%;
   padding: 0.55rem 0.7rem;
   border: 1px solid #d6e3e0;

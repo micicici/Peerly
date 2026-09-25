@@ -14,4 +14,14 @@ export class ApiService {
   post<T>(path: string, body: unknown) {
     return this.http.post<T>(`${this.baseUrl}${path}`, body);
   }
+
+  patch<T>(path: string, body: unknown) {
+    return this.http.patch<T>(`${this.baseUrl}${path}`, body);
+  }
+
+  delete(path: string) {
+    return this.http.delete(`${this.baseUrl}${path}`, {
+      responseType: 'text',
+    });
+  }
 }
