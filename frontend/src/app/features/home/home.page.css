@@ -1,0 +1,15 @@
+h2 {
+  margin-top: 1.5rem;
+}
+
+.lede {
+  max-width: 40rem;
+}
+
+.avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+

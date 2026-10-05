@@ -1,0 +1,38 @@
+<header class="shell-header">
+  <a class="brand" routerLink="/home">P2P Learn</a>
+  <nav>
+    <a routerLink="/home" routerLinkActive="active">Home</a>
+    <a routerLink="/subjects" routerLinkActive="active">Subjects</a>
+    @if (authed()) {
+      <a routerLink="/teach" routerLinkActive="active">Teach</a>
+      <a routerLink="/bookings" routerLinkActive="active">Bookings</a>
+      <a routerLink="/inbox" routerLinkActive="active">Inbox</a>
+      <a routerLink="/profile" routerLinkActive="active">Profile</a>
+      @if (isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active">Admin</a>
+      }
+    }
+  </nav>
+  <div class="header-end">
+    @if (authed()) {
+      <span class="balance">{{ balance() }} h</span>
+      <button type="button" class="ghost" (click)="logout()">Log out</button>
+    } @else {
+      <a class="header-btn ghost" routerLink="/login">Login</a>
+      <a class="header-btn primary" routerLink="/register">Register</a>
+    }
+  </div>
+</header>
+@if (prompt.pending(); as review) {
+  <aside class="pending-banner" role="status">
+    <p>
+      Leave a review for
+      <a [routerLink]="['/teachers', review.teacherId]">{{ review.teacherName }}</a>
+      after your first completed class.
+    </p>
+    <button type="button" (click)="prompt.dismiss()">Dismiss</button>
+  </aside>
+}
+<main class="page">
+  <router-outlet />
+</main>

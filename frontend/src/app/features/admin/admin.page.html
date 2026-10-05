@@ -1,0 +1,94 @@
+<section class="stack">
+  <h1>Subject moderation</h1>
+  <p class="meta">
+    Fix typos, merge duplicates, or remove subjects that should not be in the catalog.
+    Deleting a subject keeps its classes and clears their subject.
+  </p>
+  @if (errorMessage(); as message) {
+    <p class="form-error" role="alert">{{ message }}</p>
+  }
+  @if (subjects().length === 0) {
+    <p>No subjects yet.</p>
+  } @else {
+    <table>
+      <thead>
+        <tr>
+          <th>Subject</th>
+          <th>Classes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (subject of subjects(); track subject.id) {
+          <tr>
+            <td>
+              @if (editingId() === subject.id) {
+                <input
+                  type="text"
+                  [ngModel]="draftName()"
+                  (ngModelChange)="draftName.set($event)"
+                  [attr.aria-label]="'Name for ' + subject.name"
+                />
+              } @else {
+                {{ subject.name }}
+              }
+            </td>
+            <td>{{ subject.offeringCount }}</td>
+            <td>
+              <div class="row-actions">
+                @if (editingId() === subject.id) {
+                  <button type="button" (click)="saveName(subject.id)">Save</button>
+                  <button type="button" class="secondary" (click)="editingId.set(null)">
+                    Cancel
+                  </button>
+                } @else {
+                  <button type="button" class="secondary" (click)="startEdit(subject)">
+                    Edit
+                  </button>
+                }
+                @if (others(subject.id).length > 0) {
+                  <select
+                    [ngModel]="mergeInto()[subject.id] || ''"
+                    (ngModelChange)="chooseMerge(subject.id, $event)"
+                    [attr.aria-label]="'Merge ' + subject.name + ' into'"
+                  >
+                    <option value="" disabled>Merge into…</option>
+                    @for (other of others(subject.id); track other.id) {
+                      <option [value]="other.id">{{ other.name }}</option>
+                    }
+                  </select>
+                  <button type="button" class="secondary" (click)="merge(subject.id)">
+                    Merge
+                  </button>
+                }
+                <button type="button" class="danger" (click)="askDelete(subject.id)">
+                  Delete
+                </button>
+              </div>
+              @if (confirmingId() === subject.id) {
+                <div class="confirm">
+                  <p>
+                    Delete {{ subject.name }}?
+                    @if (subject.offeringCount === 1) {
+                      1 class will keep its listing without this subject.
+                    } @else {
+                      {{ subject.offeringCount }} classes will keep their listings without this subject.
+                    }
+                  </p>
+                  <div class="row-actions">
+                    <button type="button" class="danger" (click)="confirmDelete(subject.id)">
+                      Delete subject
+                    </button>
+                    <button type="button" class="secondary" (click)="confirmingId.set(null)">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

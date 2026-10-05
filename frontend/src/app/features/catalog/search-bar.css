@@ -1,0 +1,63 @@
+:host {
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.search-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.search-row .grow {
+  flex: 1 1 16rem;
+}
+
+.icon-btn {
+  width: 2.6rem;
+  height: 2.6rem;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: #fff;
+  color: #0f766e;
+  border: 1px solid #0f766e;
+}
+
+.icon-btn svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.filter-menu {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0.9rem;
+  background: #fff;
+  border: 1px solid #e7eeec;
+  border-radius: 10px;
+}
+
+.filter-menu fieldset {
+  margin: 0;
+  border: 1px solid #e7eeec;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1rem;
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.meta {
+  margin: 0;
+  color: #44403c;
+  font-size: 0.9rem;
+}

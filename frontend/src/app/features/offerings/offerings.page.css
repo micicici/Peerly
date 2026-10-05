@@ -1,0 +1,66 @@
+:host {
+  display: block;
+}
+
+.stack {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 40rem;
+}
+
+.card,
+.panel {
+  background: #fff;
+  border: 1px solid #e7eeec;
+  border-top: 4px solid #0f766e;
+  border-radius: 10px;
+  padding: 1rem 1.1rem;
+}
+
+form,
+.fields {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.meta {
+  margin: 0.35rem 0 0;
+  color: #44403c;
+  font-size: 0.9rem;
+}
+
+.secondary {
+  background: transparent;
+  color: #0f766e;
+  border: 1px solid #0f766e;
+}
+
+.danger {
+  background: #9f1239;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(28, 25, 23, 0.45);
+}
+
+.modal {
+  width: min(32rem, 100%);
+  margin: 0;
+}
+
+textarea {
+  min-height: 6rem;
+  resize: vertical;
+}

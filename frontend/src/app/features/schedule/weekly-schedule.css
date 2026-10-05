@@ -1,0 +1,85 @@
+.week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.grid-wrap {
+  width: 100%;
+  overflow: visible;
+}
+
+.week-grid {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.week-grid th,
+.week-grid td {
+  border: 1px solid #e7eeec;
+  padding: 0.4rem;
+  text-align: center;
+  min-width: 0;
+  vertical-align: middle;
+}
+
+.week-grid tbody th,
+.week-grid tbody td {
+  height: 4.5rem;
+}
+
+.week-grid th:first-child,
+.week-grid td:first-child {
+  min-width: 4rem;
+  background: #f8fbfa;
+}
+
+.block {
+  width: 100%;
+  min-height: 3.6rem;
+  border-radius: 6px;
+  background: #f4f7f6;
+  color: #44403c;
+  border: 1px solid #d6e3e0;
+}
+
+.block.open {
+  background: #ccfbf1;
+  color: #0f766e;
+  border-color: #0f766e;
+}
+
+.block.selected {
+  background: #0f766e;
+  color: #fff;
+}
+
+.block.booked,
+.block.disabled {
+  background: #e7e5e4;
+  color: #78716c;
+}
+
+.book-btn {
+  margin-top: 0.25rem;
+  width: 100%;
+}
+
+.empty {
+  color: #a8a29e;
+}
+
+.ghost {
+  background: transparent;
+  color: #0f766e;
+  border: 1px solid #0f766e;
+}
+
+:host {
+  display: block;
+  width: 100%;
+}

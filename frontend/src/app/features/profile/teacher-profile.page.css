@@ -1,0 +1,156 @@
+.profile-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.profile-top {
+  flex: 0 0 auto;
+}
+
+.hero {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.hero h1,
+.hero p {
+  margin: 0;
+}
+
+.avatar {
+  width: 4.25rem;
+  height: 4.25rem;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.subject {
+  display: inline-block;
+  margin-right: 0.75rem;
+}
+
+.schedule-stage {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.schedule-stage h2 {
+  margin: 0 0 0.35rem;
+}
+
+.schedule-stage app-weekly-schedule {
+  display: block;
+  width: 100%;
+}
+
+.reviews-block {
+  margin-top: 1.5rem;
+  max-width: 40rem;
+  padding-bottom: 5rem;
+}
+
+.chat-fab {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 40;
+  width: 3.5rem;
+  height: 3.5rem;
+  padding: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 22px rgba(15, 118, 110, 0.28);
+}
+
+.chat-fab svg {
+  width: 1.45rem;
+  height: 1.45rem;
+}
+
+.chat-dock {
+  position: fixed;
+  right: 1.25rem;
+  bottom: 5.4rem;
+  z-index: 35;
+  width: min(22rem, calc(100vw - 2.5rem));
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #e7eeec;
+  border-top: 4px solid #0f766e;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(28, 25, 23, 0.18);
+  padding: 0.75rem;
+}
+
+.chat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.chat-dock h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.chat-close {
+  background: transparent;
+  color: #44403c;
+  border: 0;
+  padding: 0.15rem 0.4rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.chat-dock form {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.chat-dock textarea {
+  min-height: 3.5rem;
+  resize: vertical;
+}
+
+.chat-log {
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 6rem;
+  max-height: 12rem;
+}
+
+.chat-row {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  background: #f4f7f6;
+  border-radius: 8px;
+}
+
+.chat-row.mine {
+  background: #ccfbf1;
+}
+
+.panel {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.form-error {
+  margin: 0.75rem 0 0;
+  color: #9f1239;
+}
+
+.danger {
+  background: #9f1239;
+}

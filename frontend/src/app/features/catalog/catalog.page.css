@@ -1,0 +1,80 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.filters label {
+  min-width: 12rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e7eeec;
+  border-top: 4px solid #0f766e;
+  border-radius: 10px;
+  padding: 1rem;
+  display: grid;
+  gap: 0.45rem;
+  align-content: start;
+  color: #1c1917;
+}
+
+.lesson-card .meta {
+  color: #3f3a36;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.card p {
+  margin: 0;
+}
+
+.meta {
+  color: #44403c;
+  font-size: 0.9rem;
+}
+
+.detail {
+  max-width: 40rem;
+  background: #fff;
+  border: 1px solid #e7eeec;
+  border-top: 4px solid #0f766e;
+  border-radius: 10px;
+  padding: 1.25rem;
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
+.button-link {
+  display: inline-block;
+  width: fit-content;
+  background: #0f766e;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+}
+
+.slot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid #e7eeec;
+}

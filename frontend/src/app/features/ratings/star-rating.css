@@ -1,0 +1,23 @@
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+.stars {
+  display: inline-flex;
+  gap: 0.12rem;
+  line-height: 0;
+}
+
+.star {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.star.filled {
+  color: #f59e0b;
+}
+
+.star.empty {
+  color: #d6d3d1;
+}
