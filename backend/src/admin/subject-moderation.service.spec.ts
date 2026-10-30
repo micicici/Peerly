@@ -1,3 +1,4 @@
+/// <reference types="jest" />
 import { Offering } from '../offerings/offering.entity';
 import { Subject } from '../offerings/subject.entity';
 import { SubjectModerationService } from './subject-moderation.service';
