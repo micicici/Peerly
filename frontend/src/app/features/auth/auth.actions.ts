@@ -13,8 +13,10 @@ export const loginSuccess = createAction(
 
 export const loginFailure = createAction(
   '[Auth] Login Failure',
-  props<{ errorCode: string }>(),
+  props<{ errorCode: string; message: string }>(),
 );
+
+export const clearAuthError = createAction('[Auth] Clear Error');
 
 export const register = createAction(
   '[Auth] Register',

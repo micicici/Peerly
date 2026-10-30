@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
   FormBuilder,
@@ -8,9 +9,10 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { ToastService } from '../../core/toast.service';
 import { BIRTH_YEAR_PLACEHOLDER, birthYearValidator, parseBirthYear } from '../../core/birth-year';
 import { parseLanguages } from '../../core/languages';
-import { register } from './auth.actions';
+import { clearAuthError, register } from './auth.actions';
 import { selectAuthState } from './auth.selectors';
 
 function hasLanguage(control: AbstractControl): ValidationErrors | null {
@@ -28,6 +30,7 @@ function hasLanguage(control: AbstractControl): ValidationErrors | null {
 export class RegisterPage {
   private readonly store = inject(Store);
   private readonly fb = inject(FormBuilder);
+  private readonly toast = inject(ToastService);
   readonly auth = this.store.selectSignal(selectAuthState);
   readonly birthYearPlaceholder = BIRTH_YEAR_PLACEHOLDER;
 
@@ -50,6 +53,15 @@ export class RegisterPage {
     ],
     spokenLanguages: ['', hasLanguage],
   });
+
+  constructor() {
+    this.form.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      if (this.auth().errorMessage) {
+        this.toast.clear();
+        this.store.dispatch(clearAuthError());
+      }
+    });
+  }
 
   submit(): void {
     if (this.form.invalid) {

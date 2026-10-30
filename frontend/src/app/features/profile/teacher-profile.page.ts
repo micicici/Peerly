@@ -7,6 +7,7 @@ import { Store } from '@ngrx/store';
 import { combineLatest } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { displayAvatar } from '../../core/avatar';
+import { failureOf } from '../../core/http-error';
 import { ToastService } from '../../core/toast.service';
 import { selectIsAuthed, selectMe } from '../auth/auth.selectors';
 import { BookingsActions } from '../bookings/bookings.actions';
@@ -132,7 +133,12 @@ type ReviewAccess = {
               </label>
               <label>
                 Comment
-                <textarea [(ngModel)]="reviewBody" name="reviewBody" required></textarea>
+                <textarea
+                  [ngModel]="reviewBody"
+                  (ngModelChange)="onReviewBody($event)"
+                  name="reviewBody"
+                  required
+                ></textarea>
               </label>
               <button type="submit">Publish review</button>
             </form>
@@ -143,7 +149,12 @@ type ReviewAccess = {
             <h2>Report / Appeal</h2>
             <label>
               What happened?
-              <textarea [(ngModel)]="reportBody" name="reportBody" required></textarea>
+              <textarea
+                [ngModel]="reportBody"
+                (ngModelChange)="onReportBody($event)"
+                name="reportBody"
+                required
+              ></textarea>
             </label>
             <button type="submit" class="danger">Submit report</button>
           </form>
@@ -328,8 +339,18 @@ export class TeacherProfilePage {
         this.messages.update((rows) => [...rows, msg]);
         this.draft = '';
       },
-      error: () => this.toast.show('Could not send message'),
+      error: (err: unknown) => this.toast.show(failureOf(err).message),
     });
+  }
+
+  onReviewBody(value: string): void {
+    this.reviewBody = value;
+    this.toast.clear();
+  }
+
+  onReportBody(value: string): void {
+    this.reportBody = value;
+    this.toast.clear();
   }
 
   submitReview(): void {
@@ -352,8 +373,7 @@ export class TeacherProfilePage {
           this.reloadReviews(teacher.id);
           this.loadReviewAccess(teacher.id);
         },
-        error: (err: { error?: { message?: string } }) =>
-          this.toast.show(err.error?.message ?? 'Could not publish review'),
+        error: (err: unknown) => this.toast.show(failureOf(err).message),
       });
   }
 
@@ -369,7 +389,7 @@ export class TeacherProfilePage {
           this.reportBody = '';
           this.reloadReviews(teacher.id);
         },
-        error: () => this.toast.show('Could not submit report'),
+        error: (err: unknown) => this.toast.show(failureOf(err).message),
       });
   }
 

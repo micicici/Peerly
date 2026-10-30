@@ -21,6 +21,7 @@ describe('selectNeedsOffering', () => {
       me: { ...meBase, balance: 0, offeringCount: 0 },
       status: 'idle',
       errorCode: null,
+      errorMessage: null,
     };
     expect(selectNeedsOffering({ auth })).toBe(true);
   });
@@ -31,6 +32,7 @@ describe('selectNeedsOffering', () => {
       me: { ...meBase, balance: 3, offeringCount: 1 },
       status: 'idle',
       errorCode: null,
+      errorMessage: null,
     };
     expect(selectNeedsOffering({ auth })).toBe(false);
   });
@@ -41,6 +43,7 @@ describe('selectNeedsOffering', () => {
       me: { ...meBase, role: 'ADMIN', balance: 0, offeringCount: 0 },
       status: 'idle',
       errorCode: null,
+      errorMessage: null,
     };
     expect(selectNeedsOffering({ auth })).toBe(false);
   });

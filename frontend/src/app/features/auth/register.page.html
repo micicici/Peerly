@@ -68,8 +68,8 @@
         <span class="form-error" role="alert">{{ message }}</span>
       }
     </label>
-    @if (auth().errorCode) {
-      <p class="form-error">{{ auth().errorCode }}</p>
+    @if (auth().errorMessage) {
+      <p class="form-error" role="alert">{{ auth().errorMessage }}</p>
     }
     <button type="submit" [disabled]="auth().status === 'loading'">Register</button>
   </form>

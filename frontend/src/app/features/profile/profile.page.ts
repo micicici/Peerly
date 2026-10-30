@@ -11,6 +11,7 @@ import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { filter, take } from 'rxjs';
 import { ApiService } from '../../core/api.service';
+import { ToastService } from '../../core/toast.service';
 import { displayAvatar } from '../../core/avatar';
 import {
   BIRTH_YEAR_PLACEHOLDER,
@@ -211,6 +212,7 @@ export class ProfilePage {
   private readonly actions$ = inject(Actions);
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(ApiService);
+  private readonly toast = inject(ToastService);
   readonly editingId = signal<string | null>(null);
   readonly confirmingId = signal<string | null>(null);
   readonly me = this.store.selectSignal(selectMe);
@@ -239,6 +241,12 @@ export class ProfilePage {
   });
 
   constructor() {
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.toast.clear());
+    this.editForm.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.toast.clear());
     this.store.dispatch(OfferingsActions.loadMine());
     this.store.dispatch(LedgerActions.load());
     this.store

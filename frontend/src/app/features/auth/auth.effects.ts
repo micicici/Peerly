@@ -1,14 +1,13 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { catchError, exhaustMap, map, of, tap } from 'rxjs';
+import { catchError, exhaustMap, map, of, switchMap, takeUntil, tap, timer } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { P2P_TOKEN_KEY } from '../../core/auth.interceptor';
-import { ErrorCodes, messageForErrorCode } from '../../core/error-codes';
 import { failureOf } from '../../core/http-error';
 import { ToastService } from '../../core/toast.service';
 import {
+  clearAuthError,
   loadMe,
   loadMeSuccess,
   login,
@@ -22,16 +21,6 @@ import {
   uploadAvatar,
 } from './auth.actions';
 import type { MeDto } from './auth.reducer';
-
-function codeOf(err: unknown): string {
-  if (err instanceof HttpErrorResponse) {
-    const body = err.error as { code?: unknown } | null;
-    if (body && typeof body.code === 'string' && body.code.length > 0) {
-      return body.code;
-    }
-  }
-  return ErrorCodes.INTERNAL;
-}
 
 @Injectable()
 export class AuthEffects {
@@ -51,13 +40,11 @@ export class AuthEffects {
               map((me) => loginSuccess({ token, me })),
               catchError((err: unknown) => {
                 localStorage.removeItem(P2P_TOKEN_KEY);
-                return of(loginFailure({ errorCode: codeOf(err) }));
+                return of(loginFailure(failureOf(err)));
               }),
             ),
           ),
-          catchError((err: unknown) =>
-            of(loginFailure({ errorCode: codeOf(err) })),
-          ),
+          catchError((err: unknown) => of(loginFailure(failureOf(err)))),
         ),
       ),
     ),
@@ -86,13 +73,11 @@ export class AuthEffects {
                 map((me) => registerSuccess({ token, me })),
                 catchError((err: unknown) => {
                   localStorage.removeItem(P2P_TOKEN_KEY);
-                  return of(loginFailure({ errorCode: codeOf(err) }));
+                  return of(loginFailure(failureOf(err)));
                 }),
               ),
             ),
-            catchError((err: unknown) =>
-              of(loginFailure({ errorCode: codeOf(err) })),
-            ),
+            catchError((err: unknown) => of(loginFailure(failureOf(err)))),
           ),
       ),
     ),
@@ -106,7 +91,7 @@ export class AuthEffects {
           map((me) => loadMeSuccess({ me })),
           catchError((err: unknown) => {
             localStorage.removeItem(P2P_TOKEN_KEY);
-            return of(loginFailure({ errorCode: codeOf(err) }));
+            return of(loginFailure(failureOf(err)));
           }),
         ),
       ),
@@ -169,9 +154,9 @@ export class AuthEffects {
     () =>
       this.actions$.pipe(
         ofType(loginFailure),
-        tap(({ errorCode }) => {
+        tap(({ message, errorCode }) => {
           localStorage.removeItem(P2P_TOKEN_KEY);
-          this.toast.show(messageForErrorCode(errorCode));
+          this.toast.show(message, errorCode);
         }),
       ),
     { dispatch: false },
@@ -188,6 +173,22 @@ export class AuthEffects {
         }),
       ),
     { dispatch: false },
+  );
+
+  dismissLoginError$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(loginFailure),
+      switchMap(() =>
+        timer(5000).pipe(
+          map(() => clearAuthError()),
+          takeUntil(
+            this.actions$.pipe(
+              ofType(login, register, clearAuthError, logout, loginSuccess, registerSuccess),
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 
   logout$ = createEffect(

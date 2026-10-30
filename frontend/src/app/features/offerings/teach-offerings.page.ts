@@ -191,6 +191,12 @@ export class TeachOfferingsPage {
   });
 
   constructor() {
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.toast.clear());
+    this.editForm.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.toast.clear());
     this.store.dispatch(OfferingsActions.loadMine());
     this.store.dispatch(SlotsActions.loadMine());
     this.actions$

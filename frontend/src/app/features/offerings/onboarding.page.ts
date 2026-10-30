@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { Actions, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { filter, switchMap, take } from 'rxjs';
+import { ToastService } from '../../core/toast.service';
 import { updateMe } from '../auth/auth.actions';
 import { selectMe } from '../auth/auth.selectors';
 import { OfferingLevel, OfferingsActions } from './offerings.actions';
@@ -53,6 +54,7 @@ export class OnboardingPage {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly actions$ = inject(Actions);
+  private readonly toast = inject(ToastService);
   readonly me = this.store.selectSignal(selectMe);
   readonly status = this.store.selectSignal(selectOfferingsStatus);
 
@@ -68,6 +70,9 @@ export class OnboardingPage {
   });
 
   constructor() {
+    this.form.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.toast.clear());
     this.actions$
       .pipe(
         ofType(OfferingsActions.createSuccess),

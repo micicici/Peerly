@@ -10,6 +10,7 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStore, Store } from '@ngrx/store';
 import { filter, firstValueFrom, take } from 'rxjs';
 import { routes } from './app.routes';
+import { apiErrorInterceptor } from './core/api-error.interceptor';
 import { authInterceptor, P2P_TOKEN_KEY } from './core/auth.interceptor';
 import { BookingsEffects } from './features/bookings/bookings.effects';
 import { CatalogEffects } from './features/catalog/catalog.effects';
@@ -25,7 +26,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, apiErrorInterceptor])),
     provideStore(reducers),
     provideEffects(
       AuthEffects,

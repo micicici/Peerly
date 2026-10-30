@@ -24,6 +24,7 @@ export class AdminPage {
   readonly confirmingId = signal<string | null>(null);
   readonly mergeInto = signal<Record<string, string>>({});
   readonly errorMessage = signal<string | null>(null);
+  private errorTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     this.reload();
@@ -33,9 +34,9 @@ export class AdminPage {
     this.api.get<AdminSubject[]>('/admin/subjects').subscribe({
       next: (subjects) => {
         this.subjects.set(subjects);
-        this.errorMessage.set(null);
+        this.dismissError();
       },
-      error: (err: unknown) => this.errorMessage.set(failureOf(err).message),
+      error: (err: unknown) => this.showError(failureOf(err).message),
     });
   }
 
@@ -44,15 +45,21 @@ export class AdminPage {
   }
 
   startEdit(subject: AdminSubject): void {
+    this.dismissError();
     this.confirmingId.set(null);
     this.editingId.set(subject.id);
     this.draftName.set(subject.name);
   }
 
+  onDraftName(value: string): void {
+    this.draftName.set(value);
+    this.dismissError();
+  }
+
   saveName(id: string): void {
     const name = this.draftName().trim();
     if (!name) {
-      this.errorMessage.set('Enter a subject name');
+      this.showError('Enter a subject name');
       return;
     }
     this.api.patch<AdminSubject>(`/admin/subjects/${id}`, { name }).subscribe({
@@ -60,25 +67,26 @@ export class AdminPage {
         this.editingId.set(null);
         this.reload();
       },
-      error: (err: unknown) => this.errorMessage.set(failureOf(err).message),
+      error: (err: unknown) => this.showError(failureOf(err).message),
     });
   }
 
   chooseMerge(id: string, intoId: string): void {
+    this.dismissError();
     this.mergeInto.update((current) => ({ ...current, [id]: intoId }));
   }
 
   merge(id: string): void {
     const intoId = this.mergeInto()[id];
     if (!intoId) {
-      this.errorMessage.set('Choose a subject to merge into');
+      this.showError('Choose a subject to merge into');
       return;
     }
     this.api
       .post<AdminSubject>(`/admin/subjects/${id}/merge`, { intoId })
       .subscribe({
         next: () => this.reload(),
-        error: (err: unknown) => this.errorMessage.set(failureOf(err).message),
+        error: (err: unknown) => this.showError(failureOf(err).message),
       });
   }
 
@@ -93,7 +101,28 @@ export class AdminPage {
         this.confirmingId.set(null);
         this.reload();
       },
-      error: (err: unknown) => this.errorMessage.set(failureOf(err).message),
+      error: (err: unknown) => this.showError(failureOf(err).message),
     });
+  }
+
+  private showError(message: string): void {
+    this.cancelErrorTimer();
+    this.errorMessage.set(message);
+    this.errorTimer = setTimeout(() => {
+      this.errorMessage.set(null);
+      this.errorTimer = null;
+    }, 5000);
+  }
+
+  private dismissError(): void {
+    this.cancelErrorTimer();
+    this.errorMessage.set(null);
+  }
+
+  private cancelErrorTimer(): void {
+    if (this.errorTimer !== null) {
+      clearTimeout(this.errorTimer);
+      this.errorTimer = null;
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
 import { P2P_TOKEN_KEY } from '../../core/auth.interceptor';
 import {
+  clearAuthError,
   loadMe,
   loadMeSuccess,
   login,
@@ -31,6 +32,7 @@ export interface AuthState {
   me: MeDto | null;
   status: 'idle' | 'loading' | 'error';
   errorCode: string | null;
+  errorMessage: string | null;
 }
 
 function readStoredToken(): string | null {
@@ -45,6 +47,7 @@ export const initialAuthState: AuthState = {
   me: null,
   status: 'idle',
   errorCode: null,
+  errorMessage: null,
 };
 
 export const authReducer = createReducer(
@@ -53,6 +56,7 @@ export const authReducer = createReducer(
     ...state,
     status: 'loading',
     errorCode: null,
+    errorMessage: null,
   })),
   on(loginSuccess, registerSuccess, (state, { token, me }): AuthState => ({
     ...state,
@@ -60,23 +64,33 @@ export const authReducer = createReducer(
     me,
     status: 'idle',
     errorCode: null,
+    errorMessage: null,
   })),
   on(loadMeSuccess, (state, { me }): AuthState => ({
     ...state,
     me,
     status: 'idle',
     errorCode: null,
+    errorMessage: null,
   })),
-  on(loginFailure, (state, { errorCode }): AuthState => ({
+  on(loginFailure, (state, { errorCode, message }): AuthState => ({
     ...state,
     token: null,
     status: 'error',
     errorCode,
+    errorMessage: message,
+  })),
+  on(clearAuthError, (state): AuthState => ({
+    ...state,
+    status: state.status === 'error' ? 'idle' : state.status,
+    errorCode: null,
+    errorMessage: null,
   })),
   on(logout, (): AuthState => ({
     token: null,
     me: null,
     status: 'idle',
     errorCode: null,
+    errorMessage: null,
   })),
 );

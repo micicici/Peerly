@@ -14,16 +14,26 @@ import { ApiService } from '../../core/api.service';
         [attr.list]="listId"
         placeholder="Cooking, IT, Math"
         autocomplete="off"
+        (blur)="control().markAsTouched()"
       />
       <datalist [id]="listId">
         @for (subject of subjects(); track subject.id) {
           <option [value]="subject.name"></option>
         }
       </datalist>
+      @if (requiredError()) {
+        <span class="form-error" role="alert">Subject is required</span>
+      }
     </label>
     <p class="meta">
       Choose an existing subject or type a new one. New subjects are saved for later.
     </p>
+  `,
+  styles: `
+    .form-error {
+      margin: 0.35rem 0 0;
+      color: #9f1239;
+    }
   `,
 })
 export class SubjectInputComponent implements OnInit {
@@ -37,5 +47,10 @@ export class SubjectInputComponent implements OnInit {
       next: (rows) => this.subjects.set(rows),
       error: () => this.subjects.set([]),
     });
+  }
+
+  requiredError(): boolean {
+    const control = this.control();
+    return control.hasError('required') && (control.touched || control.dirty);
   }
 }
